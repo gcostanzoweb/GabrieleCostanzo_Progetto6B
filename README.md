@@ -1,11 +1,11 @@
 # Progetto "6B" per DSBD 2020/21
 
 ## Heartbeat Fault Detector, con Spring WebFlux
-###Di: Gabriele Costanzo, matr. 1000014221
+### Di: Gabriele Costanzo, matr. 1000014221
 
 ---
 
-#1. Introduzione
+# 1. Introduzione
 Il progetto 6 variante B prevedeva lo sviluppo di un Fault Detector basato su meccanismo Heartbeat comprendente delle seguenti tecnologie:
 
 - Spring Boot con Spring WebFlux
@@ -17,7 +17,7 @@ Non è prevista permanenza dei dati raccolti, i quali sono mantenuti in una Hash
 
 ---
 
-#2. Avvio e Testing
+# 2. Avvio e Testing
 Dall'interno del root del progetto, sarà sufficiente compiere i seguenti 3 step:
 1. Modificare il file `.env` con i propri valori preferiti:
 ```
@@ -58,9 +58,9 @@ Content-Type: application/json
 
 ---
 
-#3. Funzionamento
+# 3. Funzionamento
 Si distinguono, per comodità, due tipi distinti di Fault:
-###Down:
+### Down:
 Si verifica quando si riceve un Heartbeat che contenga lo stato `down` in almeno uno dei due campi `serviceStatus` e `dbStatus`.
 In tal caso, sul topic `logging` di Kafka verrà inviato un messaggio del tipo:
 ```
@@ -80,7 +80,7 @@ In tal caso, sul topic `logging` di Kafka verrà inviato un messaggio del tipo:
 }
 ```
 
-###Expire:
+### Expire:
 Si verifica quando il task scheduled si accorge - per un dato servizio - che:
 ```
 [ Instant.now().getEpochSecond() - heartbeatRecord.getTimestamp() ] > PERIOD
@@ -117,12 +117,12 @@ Se si è ricevuto solo il KafkaMessage di `Down`, si può concludere che un nuov
 
 ---
 
-#4. Struttura
+# 4. Struttura
 Le principali classi del progetto sono presenti nel package di base (`com.gabriele.costanzo.heartbeatfd`) del container `heartbeatfd`.
 
 Si distinguono:
-###- 2 classi Modello:
-##HeartBeat
+### - 2 classi Modello:
+## HeartBeat
 Rappresentano il JSON che ci si aspetta in arrivo dalla richiesta HTTP:
 ```
 {
@@ -135,7 +135,7 @@ Per politica di implementazione, su `serviceStatus` e `dbStatus` si accetta solo
 come stato di "Up", e qualunque altra come stato di "Down".
 
 Possiede un metodo `isAlive()` per verificare che entrambi gli status siano "Up".
-##HeartBeatRecord
+## HeartBeatRecord
 Classe di supporto che viene utilizzata a due scopi:
 - sia come contenuto Object della HashMap<Host, Object> dello stato dei servizi
 - sia come Value dei KafkaMessage
@@ -159,11 +159,11 @@ Il contenuto di `status` dipende dal tipo di costruttore utilizzato:
 - sarà uguale al contenuto dell'Heartbeat ricevuto se si passa nel costruttore
 - sarà uguale ad un messaggio costante di `serviceUnavailable` se si passa il nome del servizio nel costruttore
 
-###- e 4 classi dell'Applicazione Spring:
+### - e 4 classi dell'Applicazione Spring:
 ##HeartbeatFaultDetectorApplication
 Punto di avvio dell'applicazione Spring. Utilizza l'annotazione `@EnableScheduling` per permettere operazioni schedulate.
 
-##HeartBeatService
+## HeartBeatService
 Il servizio di base per comunicare con HeartBeat e HeartBeatRecord. Prevede:
 - un campo `heartbeatMap` di tipo `HashMap<String, HeartBeatRecord>` che contiene lo stato attuale dei servizi di cui si è ricevuto
 almeno un Heartbeat.
@@ -180,10 +180,10 @@ Nel caso in cui questa ritorna `True`, si notifica un `Expire` su Kafka, e si po
 ad un valore di errore pari a `-1`.
 In questo modo, alle prossime iterazioni, il Record in questione verrà saltato, in attesa di un nuovo HeartBeat che riconfermi lo stato di "Up".
 
-##HeartBeatScheduler
+## HeartBeatScheduler
 Si tratta di un Component monouso, il cui scopo è quello di invocare `verify()` su `HeartBeatService` con un delay fisso pari a `TASK_DELAY` in millisecondi (dall'env file).
 
-##HeartBeatController
+## HeartBeatController
 Si tratta di un `RestController` che espone un endpoint `POST: /ping` che si attende una Request serializzabile a POJO `HeartBeat`
 e fornisce in risposta un `HTTP 202 Accepted`.
 
@@ -194,17 +194,17 @@ notificando anche nella console di Docker.
 
 In aggiunta, nel package `kafka` sono presenti due classi per la gestione della comunicazione con Kafka.
 
-##KafkaProducerConfig
+## KafkaProducerConfig
 Una classe di `@Configuration` che rende il container Kafka visibile alla Spring Application, e gestisce la creazione (o verifica) di un topic `logging`.
 
-##KafkaMessage
+## KafkaMessage
 Un POJO di supporto che prevede:
 - un campo `key`, costante e pari a `service_down`
 - un campo `value` di tipo `HeartBeatRecord`, riempito in accordo alle regole della classe per rappresentare un valore di `Down` o di `Expire`.
 
 ---
 
-#5. Conclusioni
+# 5. Conclusioni
 Il microservizio è stato progettato tenendo in considerazione:
 - semplicità di build dei container
 - semplicità di testing dei Topic Kafka
