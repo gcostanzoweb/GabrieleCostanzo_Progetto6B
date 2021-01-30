@@ -160,7 +160,7 @@ Il contenuto di `status` dipende dal tipo di costruttore utilizzato:
 - sarà uguale ad un messaggio costante di `serviceUnavailable` se si passa il nome del servizio nel costruttore
 
 ### - e 4 classi dell'Applicazione Spring:
-##HeartbeatFaultDetectorApplication
+## HeartbeatFaultDetectorApplication
 Punto di avvio dell'applicazione Spring. Utilizza l'annotazione `@EnableScheduling` per permettere operazioni schedulate.
 
 ## HeartBeatService
