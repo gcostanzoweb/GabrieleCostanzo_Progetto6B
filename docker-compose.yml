@@ -1,35 +1,48 @@
 version: '3.4'
 
-x-common-variables: &common-variables
-  # Check every TASK_DELAY milliseconds
-  TASK_DELAY: 5000
-  # Alert inactivity after PERIOD seconds
-  PERIOD: 30
+x-xxx-common-services-config: &common-services-config
+  restart: always
+
+x-kafka-env: &kafka-env
+  KAFKA_BROKER_ID: 1
+  KAFKA_ADVERTISED_PORT: 9092
+  BROKER_ID_COMMAND: "hostname | cut -d'-' -f2"
+  KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
+  KAFKA_CREATE_TOPICS: "logging:20:1,pushnotifications:10:1,invoicing:10:1,mailing:10:1,userupdates:10:1,orderupdates:10:1"
+  KAFKA_LISTENERS: "PLAINTEXT://:9092"
+
+#x-common-variables: &common-variables
+  #TASK_DELAY: ${TASK_DELAY}
+  #PERIOD: ${PERIOD}
+  #TASK_DELAY: 5000
+  #PERIOD: 30
 
 services:
 
-  zookeper:
-    image: wurstmeister/zookeeper
+  zoo:
+    <<: *common-services-config
+    image: library/zookeeper:3.4.13
+    environment:
+      ZOO_MY_ID: 1
 
   kafka:
-    image: wurstmeister/kafka
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ZOOKEEPER_CONNECT: zookeper:2181
-    depends_on:
-      - zookeper
+    <<: *common-services-config
+    environment: *kafka-env
+    image: wurstmeister/kafka:2.11-2.0.0
 
   heartbeatfd:
     build:
       context: .
       dockerfile: heartbeatfd/Dockerfile
+      args:
+        - TASK_DELAY=${TASK_DELAY}
+        - PERIOD=${PERIOD}
     ports:
-      - "7777:7777"
+      - "8080:8080"
     restart: always
-    environment:
-      <<: *common-variables
+    #environment:
+      #<<: *common-variables
+      #PROFILE: dev
 
 volumes:
   mystorage:

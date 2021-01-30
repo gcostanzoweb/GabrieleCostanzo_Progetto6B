@@ -13,5 +13,5 @@ public class HeartBeatScheduler {
     @Scheduled(fixedDelayString = "${checkInterval}")
     public void checkRecordHealth(){
         service.verify();
-    }
+    }   // verifica l'expire dei servizi a intervalli di "checkInterval" ms
 }

@@ -3,11 +3,16 @@ package com.gabriele.costanzo.heartbeatfd;
 import java.io.Serializable;
 
 public class HeartBeat implements Serializable {
+    // Campi corrispondenti a quelli attesi nel JSON della richiesta
     private String serviceName;
     private String serviceStatus;
     private String dbStatus;
 
-    public boolean isAlive(){ return this.getServiceStatus()=="up" && this.getDbStatus()=="up"; }
+    /**
+     * Controlla che entrambi i campi "serviceStatus" e "dbStatus" dell'heartbeat siano "up"
+     * @return true, se il service è completamente "up"; false, altrimenti
+     */
+    public boolean isAlive(){ return this.getServiceStatus().compareTo("up")==0 && this.getDbStatus().compareTo("up")==0; }
 
     public String getServiceName(){ return this.serviceName; }
     public String getServiceStatus(){ return this.serviceStatus; }
